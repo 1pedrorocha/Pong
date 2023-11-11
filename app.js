@@ -6,7 +6,7 @@ const field = {
   w: window.innerWidth,
   h: window.innerHeight,
   draw: function () {
-    canvasCtx.fillStyle = "#286047";
+    canvasCtx.fillStyle = "#2F3838";
     canvasCtx.fillRect(0, 0, this.w, this.h);
   },
 };
@@ -15,7 +15,7 @@ const line = {
   w: 15,
   h: field.h,
   draw: function () {
-    canvasCtx.fillStyle = "#ffffff";
+    canvasCtx.fillStyle = "#4B524F";
     canvasCtx.fillRect(field.w / 2 - this.w / 2, 0, this.w, this.h);
   },
 };
@@ -29,7 +29,7 @@ const leftPaddle = {
   x: gapX,
   y: 100,
   w: line.w,
-  h: 200,
+  h: field.h / 8,
 
   minY: 0 + this.h / 2,
   maxY: field.height - this.h / 2,
@@ -37,7 +37,7 @@ const leftPaddle = {
     this.y = mouse.y - this.h / 2;
   },
   draw: function () {
-    canvasCtx.fillStyle = "#ffffff";
+    canvasCtx.fillStyle = "#E87474";
     canvasCtx.fillRect(this.x, this.y, this.w, this.h);
 
     this._move();
@@ -48,9 +48,9 @@ const rightPaddle = {
   x: field.w - line.w - gapX,
   y: 100,
   w: line.w,
-  h: 200,
+  h: field.h / 8,
 
-  speed: 16,
+  speed: Math.random() * 5 + 25,
   _move: function () {
     if (this.y + this.h / 2 < ball.y + ball.r) {
       this.y += this.speed;
@@ -60,16 +60,18 @@ const rightPaddle = {
   },
 
   speedUp: function () {
-    if (ball.speed < 8) {
-      this.speed = this.speed;
-    } else {
-      this.speed += 20;
-    }
+    this.speed++;
+  },
+
+  speedRestart: function () {
+    this.speed = Math.random() * 10 + 20;
   },
 
   draw: function () {
-    canvasCtx.fillStyle = "#ffffff";
+    canvasCtx.fillStyle = "#74B0E8";
+
     canvasCtx.fillRect(this.x, this.y, this.w, this.h);
+    canvasCtx.roundRect(this.x, this.y, this.w, this.h, 5);
     this._move();
   },
 };
@@ -90,7 +92,7 @@ const score = {
     canvasCtx.font = "bold 72px Arial";
     canvasCtx.textAlign = "center";
     canvasCtx.textBaseline = "top";
-    canvasCtx.fillStyle = "#01341D";
+    canvasCtx.fillStyle = "#181D1F";
     canvasCtx.fillText(this.human, field.w / 4, 50);
     canvasCtx.fillText(this.computer, field.w / 4 + field.w / 2, 50);
   },
@@ -100,9 +102,9 @@ const ball = {
   x: 370,
   y: 120,
   r: 20,
-  speed: 5,
-  directionX: 3,
-  directionY: 2,
+  speed: 8,
+  directionX: Math.random() / 2 + 2,
+  directionY: Math.random() / 2 + 1,
 
   _calcPosition: function () {
     if (this.x + this.r > field.w - rightPaddle.w - gapX) {
@@ -111,12 +113,22 @@ const ball = {
         this.y - this.r < rightPaddle.y + rightPaddle.h
       ) {
         this._reverseX();
+        this._changeDirection();
+
         this._speedUp();
+        rightPaddle.speedUp();
       } else {
         score.increaseHuman();
         this._pointUp();
         this._reverseX();
-        this.speed = this.speed / 2;
+        this._restartDirection();
+        rightPaddle.speedRestart();
+
+        if (this.speed > 8) {
+          this.speed = this.speed / 2;
+        } else {
+          this.speed = 5;
+        }
       }
     }
 
@@ -126,12 +138,19 @@ const ball = {
         this.y - this.r < leftPaddle.y + leftPaddle.h
       ) {
         this._reverseX();
+        this._changeDirection();
         this._speedUp();
       } else {
         score.increaseComputer();
         this._pointUp();
         this._reverseX();
-        this.speed = this.speed / 2;
+        this._restartDirection();
+        rightPaddle.speedRestart();
+        if (this.speed > 8) {
+          this.speed = this.speed / 2;
+        } else {
+          this.speed = 5;
+        }
       }
     }
 
@@ -142,6 +161,17 @@ const ball = {
       this._reverseY();
     }
   },
+
+  _changeDirection: function () {
+    this.directionX = (Math.random() + 0.6) * this.directionX;
+    this.directionY = (Math.random() + 0.6) * this.directionY;
+  },
+
+  _restartDirection: function () {
+    this.directionX = Math.random() / 2 + 2;
+    this.directionY = Math.random() / 2 + 1;
+  },
+
   _reverseX: function () {
     this.directionX *= -1;
   },
