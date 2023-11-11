@@ -1,6 +1,6 @@
 const canvasEl = document.querySelector("canvas"),
   canvasCtx = canvasEl.getContext("2d"),
-  gapX = 10;
+  gapX = 50;
 
 const field = {
   w: window.innerWidth,
@@ -30,6 +30,9 @@ const leftPaddle = {
   y: 100,
   w: line.w,
   h: 200,
+
+  minY: 0 + this.h / 2,
+  maxY: field.height - this.h / 2,
   _move: function () {
     this.y = mouse.y - this.h / 2;
   },
@@ -46,9 +49,24 @@ const rightPaddle = {
   y: 100,
   w: line.w,
   h: 200,
+
+  speed: 16,
   _move: function () {
-    this.y = ball.y - this.h / 2;
+    if (this.y + this.h / 2 < ball.y + ball.r) {
+      this.y += this.speed;
+    } else {
+      this.y -= this.speed;
+    }
   },
+
+  speedUp: function () {
+    if (ball.speed < 8) {
+      this.speed = this.speed;
+    } else {
+      this.speed += 20;
+    }
+  },
+
   draw: function () {
     canvasCtx.fillStyle = "#ffffff";
     canvasCtx.fillRect(this.x, this.y, this.w, this.h);
@@ -93,9 +111,27 @@ const ball = {
         this.y - this.r < rightPaddle.y + rightPaddle.h
       ) {
         this._reverseX();
+        this._speedUp();
       } else {
         score.increaseHuman();
         this._pointUp();
+        this._reverseX();
+        this.speed = this.speed / 2;
+      }
+    }
+
+    if (this.x - this.r < 0 + leftPaddle.w + gapX) {
+      if (
+        this.y + this.r > leftPaddle.y &&
+        this.y - this.r < leftPaddle.y + leftPaddle.h
+      ) {
+        this._reverseX();
+        this._speedUp();
+      } else {
+        score.increaseComputer();
+        this._pointUp();
+        this._reverseX();
+        this.speed = this.speed / 2;
       }
     }
 
@@ -111,6 +147,10 @@ const ball = {
   },
   _reverseY: function () {
     this.directionY *= -1;
+  },
+
+  _speedUp: function () {
+    this.speed++;
   },
 
   _pointUp: function () {
@@ -130,6 +170,7 @@ const ball = {
 
     this._move();
     this._calcPosition();
+    // this._speedUp();
   },
 };
 
